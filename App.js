@@ -1,112 +1,145 @@
-// Flow
-import React, {PureComponent } from 'react'
-import { Image, AppRegistry, TouchableOpacity, SafeAreaView, StyleSheet, ScrollView, View, Text, StatusBar, Pressable, Dimensions} from 'react-native'
+// @flow
+import React, {PureComponent} from 'react'
+import {AppRegistry, Image, SafeAreaView, StatusBar, StyleSheet, Text, TouchableOpacity, View} from 'react-native'
+import TextTicker from 'react-native-text-ticker'
 import Video from 'react-native-video'
-import {getTrack, getTrackUrl} from './libs/SoundCloudHelper'
-import SoundCloudWaveform from 'react-native-soundcloud-waveform'
+import Equalizer from './components/Equalizer'
+import colors from './consts/Colors'
+import {getPlaylist, getTrack} from './libs/SoundCloudHelper'
+
+type Track = {
+    stream_url: string,
+    title: String,
+    artwork_url: string,
+    wavewaveform_url: string
+}
+
+type Playlist = {
+  title: string,
+  trackCount: number,
+  tracks: Array<Track>
+}
 
 type Props = {}
 type State = {
+  activeSongIndex: number,
   isPlaying: boolean,
-  track: {
-    stream_url: string,
-    artwork_url: string,
-    wavewaveform_url: string
-  },
+  track?: Track,
+  playlist?: Playlist,
   percentPlayable: number,
   percentPlayed: number,
   audiDuration: number
 }
 // https://api.soundcloud.com/tracks/462716859?client_id=95f22ed54a5c297b1c41f72d713623ef
-const TEST_TRACK = '462716859'
 export class App extends PureComponent<Props, State> {
   state = {
+    activeSongIndex: 0,
     isPlaying: false,
     track: undefined,
+    playlist: undefined,
     percentPlayable: 1,
-    percentPlayed: 0
+    percentPlayed: 0,
+    audiDuration: 0
   }
 
   audioRef: ?Object
 
   componentDidMount () {
-    getTrack(TEST_TRACK)
+    /* getTrack(TEST_TRACK)
       .then((track) => this.setState({track}))
-
+      .catch(() => {}) */
+    getPlaylist()
+      .then((playlist) => this.setState({playlist}))
+      .catch(() => { })
   }
-  render () {
+
+  render (): React$Node {
     let {isPlaying} = this.state
-    let {track} = this.state
+    let activeSong = this.getActiveSong()
     return <View style={styles.container}>
-        <StatusBar barStyle="dark-content" />
-        <SafeAreaView>
-          <View style={styles.wrapper}>
-            {this.renderSoundAndWave()}
+      <StatusBar barStyle='dark-content' />
+      <SafeAreaView>
+        <View style={styles.wrapper}>
+          <View style={styles.titleWrapper}>
+            <TextTicker
+              style={styles.title}
+              duration={5000}
+              loop
+              repeatSpacer={50}
+              marqueeDelay={0}
+            >
+              {activeSong?.title}
+            </TextTicker>
+          </View>
+          <Image source={{uri: activeSong?.artwork_url}} style={styles.artwork} />
+          <View style={styles.equalizerContainer}>
+            <Equalizer isActive={isPlaying} />
+          </View>
+          {this.renderSound()}
           <View style={styles.controlsWrapper}>
-            <TouchableOpacity activeOpacity={0.8} style={styles.button}><Text>PREV</Text></TouchableOpacity>
-            <TouchableOpacity activeOpacity={0.8} style={styles.button} onPress={() => this.setState({ isPlaying: !isPlaying })}><Text>{isPlaying ? 'PAUSE' : 'PLAY'}</Text></TouchableOpacity>
-            <TouchableOpacity activeOpacity={0.8} style={styles.button}><Text>NEXT</Text></TouchableOpacity>
+            <TouchableOpacity activeOpacity={0.8} style={styles.button} onPress={this.prevSong}><Text>PREV</Text></TouchableOpacity>
+            <TouchableOpacity activeOpacity={0.8} style={styles.button} onPress={() => this.setState({isPlaying: !isPlaying})}><Text>{isPlaying ? 'PAUSE' : 'PLAY'}</Text></TouchableOpacity>
+            <TouchableOpacity activeOpacity={0.8} style={styles.button} onPress={this.nextSong}><Text>NEXT</Text></TouchableOpacity>
           </View>
         </View>
-        </SafeAreaView>
+      </SafeAreaView>
     </View>
   }
 
-  renderSoundAndWave=  () =>{
-    let { track, isPlaying, percentPlayable, percentPlayed} = this.state
-    if (!track) return <View />
-    console.log(getTrackUrl('462716859'))
+  renderSound= () => {
+    let {isPlaying} = this.state
+    let activeSong = this.getActiveSong()
+    console.log(activeSong)
     return <View style={styles.soundContainer}>
-      <Image source={{uri: track.artwork_url}} key={0} style={styles.artwork} />
-      <View key={1} style={styles.waveContainer}>
-        <SoundCloudWaveform
-          waveformUrl={track.waveform_url}
-          percentPlayed={percentPlayed}
-          setTime={this.setTime}
-          height={40}
-          /* 
-          activeInverse='black'
-          activePlayable='red'
-          activePlayableInverse='red'
-          inactive='red'
-          inactiveInverse='red'*/
-        />
-      </View>
-      <Video 
-        source={{ uri: track.stream_url}}
+      <Video
+        source={{uri: activeSong?.stream_url}}
         ref={this.setAudioRef}
         volume={8}
         muted={false}
         onLoad={this.onAudioLoad}
         paused={!isPlaying}
-        playInBackground={true}
-        playWhenInactive={true}
+        playInBackground
+        playWhenInactive
         onProgress={this.onPlayProgress}
         onEnd={this.onPlayEnd}
         repeat={false}
       />
     </View>
-     }
+  }
+
+  getActiveSong = () => {
+    let {playlist, activeSongIndex} = this.state
+    if (!playlist) return undefined
+    return playlist?.tracks[activeSongIndex]
+  }
+
+  nextSong = () => {
+    let {activeSongIndex} = this.state
+    this.setState({activeSongIndex: activeSongIndex + 1})
+  }
+
+  prevSong = () => {
+    let {activeSongIndex} = this.state
+    if (activeSongIndex === 0) return
+    this.setState({activeSongIndex: activeSongIndex - 1})
+  }
 
   setTime = (percentage: number) => {
     let {audiDuration} = this.state
     percentage = (percentage / 100) * 0.88
-    console.warn(percentage)
-    /* let newTime = (audiDuration * percentage) * 0.45
-    this.audioRef.seek(newTime)
+    let newTime = (audiDuration * percentage) * 0.45
+    this.audioRef?.seek(newTime)
     this.setState({percentPlayed: (percentage * 0.88)})
-    */
   }
 
   onAudioLoad = (audioProps: Object) => {
-    console.warn('loaded media')
     this.setState({audiDuration: audioProps.duration})
   }
 
   onPlayProgress = (timerObject: Object) => {
-    let {currentTime, playableDuration}  = timerObject
+    let {currentTime, playableDuration} = timerObject
     let percentPlayed = currentTime / playableDuration
-    this.setState({percentPlayed: percentPlayed,})
+    this.setState({percentPlayed: percentPlayed})
   }
 
   setAudioRef = (ref: Object) => this.audioRef = ref
@@ -114,12 +147,12 @@ export class App extends PureComponent<Props, State> {
   onPlayEnd = () => {}
 }
 
-AppRegistry.registerComponent('retro', () => App);
+AppRegistry.registerComponent('retro', () => App)
 const styles = StyleSheet.create({
-  container:  {
+  container: {
     flex: 1,
     justifyContent: 'center',
-    backgroundColor: '#96ceb4'
+    backgroundColor: colors.green
   },
   wrapper: {
   },
@@ -127,36 +160,45 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     height: 100,
     alignSelf: 'center',
-    flex: 1,
+    flex: 1
   },
   button: {
     height: 50,
     width: 70,
-    borderWidth: 2,
+    borderWidth: 1,
     borderRadius: 6,
     margin: 2,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: "#000",
+    shadowColor: colors.black,
     shadowOffset: {
       width: 2,
-      height: 2,
+      height: 2
     },
     shadowOpacity: 0.2,
     shadowRadius: 2,
     elevation: 14
   },
-  soundContainer: {
-    top: -100
-  },
-  waveContainer: {
+  soundContainer: {},
+  equalizerContainer: {
     flex: 1,
+    // minHeight: 70,
+    marginBottom: 10
   },
   artwork: {
     alignSelf: 'center',
-    height: 150,
+    height: 220,
     resizeMode: 'contain',
-    width: '100%',
-    top: -100,
+    width: '100%'
+  },
+  titleWrapper: {
+    width: '55%',
+    alignSelf: 'center',
+    marginLeft: 20,
+    marginBottom: 20,
+    marginRight: 20
+  },
+  title: {
+
   }
 })
