@@ -1,7 +1,7 @@
 // @flow
 const CLIENT_ID = '95f22ed54a5c297b1c41f72d713623ef' // '38kZjAWhqvwrcMFKFo3496SY4OsSovTU' // '95f22ed54a5c297b1c41f72d713623ef' // '95f22ed54a5c297b1c41f72d713623ef'
 const API = 'https://api.soundcloud.com'
-const API_V2 = ' https://api-v2.soundcloud.com'
+// const API_V2 = ' https://api-v2.soundcloud.com'
 
 export const getTrack = (trackId: string) => {
   return sendRequest(`/tracks/${trackId}/`)
@@ -28,8 +28,8 @@ export const mapTrack = (track: Object) => ({
 const attachClientId = (url) => `${url}?client_id=${CLIENT_ID}`
 
 const sendRequest = (uri: string) => {
-  // https://api-v2.soundcloud.com
   let url = attachClientId(API + uri)
+  console.log(url)
   return fetch(url)
     .then((res) => {
       if (res.status >= 300) return Promise.reject(res)

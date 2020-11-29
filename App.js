@@ -77,12 +77,79 @@ export class App extends PureComponent<Props, State> {
           </View>
           {this.renderSound()}
           <View style={styles.controlsWrapper}>
-            <TouchableOpacity activeOpacity={0.8} style={styles.button} onPress={this.prevSong}><Text>PREV</Text></TouchableOpacity>
-            <TouchableOpacity activeOpacity={0.8} style={styles.button} onPress={() => this.setState({isPlaying: !isPlaying})}><Text>{isPlaying ? 'PAUSE' : 'PLAY'}</Text></TouchableOpacity>
-            <TouchableOpacity activeOpacity={0.8} style={styles.button} onPress={this.nextSong}><Text>NEXT</Text></TouchableOpacity>
+            <TouchableOpacity activeOpacity={0.8} style={styles.button} onPress={this.prevSong}><Text>{this.renderPrevButton()}</Text></TouchableOpacity>
+            <TouchableOpacity activeOpacity={0.8} style={styles.button} onPress={() => this.setState({isPlaying: !isPlaying})}><Text>{isPlaying ? this.renderPauseButton() : this.renderPlayButton()}</Text></TouchableOpacity>
+            <TouchableOpacity activeOpacity={0.8} style={styles.button} onPress={this.nextSong}><Text>{this.renderNextButton()}</Text></TouchableOpacity>
           </View>
         </View>
       </SafeAreaView>
+    </View>
+  }
+
+  renderNextButton = () => {
+    return <View style={{transform: [{rotate: '180deg'}], paddingBottom: 10}}>
+      {this.renderPrevButton()}
+    </View>
+  }
+
+  renderPrevButton = () => {
+    return <View style={[styles.controlIconWrapper, {flexDirection: 'column'}]}>
+      <View key={0}>
+        <View style={styles.pixel} />
+      </View>
+      <View key={1} style={{right: 5.5}}>
+        <View style={styles.pixel} />
+      </View>
+      <View key={2} style={{right: 11}}>
+        <View style={styles.pixel} />
+      </View>
+      <View key={3} style={{right: 5.5}}>
+        <View style={styles.pixel} />
+      </View>
+      <View key={4}>
+        <View style={styles.pixel} />
+      </View>
+    </View>
+  }
+
+  renderPlayButton = () => {
+    return <View style={styles.controlIconWrapper}>
+      <View key={0}>
+        <View style={styles.pixel} />
+        <View style={styles.pixel} />
+        <View style={styles.pixel} />
+        <View style={styles.pixel} />
+      </View>
+      <View key={1}>
+        <View style={styles.pixel} />
+        <View style={styles.pixel} />
+        <View style={styles.pixel} />
+      </View>
+      <View key={2}>
+        <View style={styles.pixel} />
+        <View style={styles.pixel} />
+      </View>
+      <View key={3}>
+        <View style={styles.pixel} />
+      </View>
+    </View>
+  }
+
+  renderPauseButton = () => {
+    return <View style={styles.controlIconWrapper}>
+      <View key={0}>
+        <View style={styles.pixel} />
+        <View style={styles.pixel} />
+        <View style={styles.pixel} />
+        <View style={styles.pixel} />
+      </View>
+      <View key={1} style={{margin: 2.5}} />
+      <View key={2}>
+        <View style={styles.pixel} />
+        <View style={styles.pixel} />
+        <View style={styles.pixel} />
+        <View style={styles.pixel} />
+      </View>
     </View>
   }
 
@@ -159,6 +226,7 @@ const styles = StyleSheet.create({
   controlsWrapper: {
     flexDirection: 'row',
     height: 100,
+    justifyContent: 'center',
     alignSelf: 'center',
     flex: 1
   },
@@ -187,7 +255,7 @@ const styles = StyleSheet.create({
   },
   artwork: {
     alignSelf: 'center',
-    height: 220,
+    height: 223,
     resizeMode: 'contain',
     width: '100%'
   },
@@ -200,5 +268,17 @@ const styles = StyleSheet.create({
   },
   title: {
 
+  },
+  controlIconWrapper: {
+    paddingTop: 5,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center'
+  },
+  pixel: {
+    height: 5,
+    width: 5,
+    margin: 1,
+    backgroundColor: colors.black
   }
 })

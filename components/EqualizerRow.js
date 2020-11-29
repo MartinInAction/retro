@@ -2,6 +2,8 @@
 import React, {PureComponent} from 'react'
 import {StyleSheet, View} from 'react-native'
 import EqualizerDot from './EqualizerDot'
+
+const MAX_DOTS = 32
 type Props = {
   isActive: boolean,
   index: number
@@ -12,19 +14,20 @@ type State = {
 
 export default class EqualizerRow extends PureComponent<Props, State> {
     state = {
-      numberOfDots: 1
+      numberOfDots: MAX_DOTS
     }
 
     interval: ?Object
     componentWillReceiveProps (nextProps: Props, nextState: State) {
-      if (!nextProps.isActive) this.stop()
-      if (nextProps.isActive) this.start()
+      // if (!nextProps.isActive) this.stop()
+      // if (nextProps.isActive) this.start()
     }
 
     render (): React$Node {
+      let {isActive} = this.props
       let {numberOfDots} = this.state
       return <View style={styles.container}>
-        {Array(numberOfDots).fill(0).map((item, index) => <EqualizerDot key={index} />)}
+        {Array(numberOfDots).fill(0).map((item, index) => <EqualizerDot index={index} isActive={isActive} key={index} />)}
       </View>
     }
 
