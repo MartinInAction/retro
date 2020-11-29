@@ -31,6 +31,10 @@ const sendRequest = (uri: string) => {
   // https://api-v2.soundcloud.com
   let url = attachClientId(API + uri)
   return fetch(url)
+    .then((res) => {
+      if (res.status >= 300) return Promise.reject(res)
+      return res
+    })
     .then((res) => res.json())
     .catch((err) => {
       console.warn(err)
