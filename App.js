@@ -6,7 +6,7 @@ import Video from 'react-native-video'
 import Equalizer from './components/Equalizer'
 import colors from './consts/Colors'
 import {getPlaylist, getTrack} from './libs/SoundCloudHelper'
-
+const SWEDISH_SUMMER_PLAYLIST_ID = '1146898279'
 type Track = {
     stream_url: string,
     title: String,
@@ -48,7 +48,7 @@ export class App extends PureComponent<Props, State> {
     /* getTrack(TEST_TRACK)
       .then((track) => this.setState({track}))
       .catch(() => {}) */
-    getPlaylist()
+    getPlaylist(SWEDISH_SUMMER_PLAYLIST_ID)
       .then((playlist) => this.setState({playlist}))
       .catch(() => { })
   }

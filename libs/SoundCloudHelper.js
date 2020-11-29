@@ -1,6 +1,7 @@
 // @flow
-const CLIENT_ID = '95f22ed54a5c297b1c41f72d713623ef' // '95f22ed54a5c297b1c41f72d713623ef'
+const CLIENT_ID = '95f22ed54a5c297b1c41f72d713623ef' // '38kZjAWhqvwrcMFKFo3496SY4OsSovTU' // '95f22ed54a5c297b1c41f72d713623ef' // '95f22ed54a5c297b1c41f72d713623ef'
 const API = 'https://api.soundcloud.com'
+const API_V2 = ' https://api-v2.soundcloud.com'
 
 export const getTrack = (trackId: string) => {
   return sendRequest(`/tracks/${trackId}/`)
@@ -10,12 +11,12 @@ export const getTrack = (trackId: string) => {
     }))
 }
 
-export const getPlaylist = () => {
-  return sendRequest(`/playlists/1146947782`)
+export const getPlaylist = (playlistId: string) => {
+  return sendRequest(`/playlists/${playlistId}`)
     .then((playlist) => ({
       title: playlist.title,
       trackCount: playlist.track_count,
-      tracks: playlist.tracks.map(mapTrack)
+      tracks: shuffleArray(playlist.tracks.map(mapTrack))
     }))
 }
 
@@ -24,13 +25,10 @@ export const mapTrack = (track: Object) => ({
   stream_url: attachClientId(track.stream_url)
 })
 
-export const getTrackUrl = (trackId: string) => {
-  return attachClientId(`https://api-v2.soundcloud.com/tracks/${trackId}/stream`)
-}
-
 const attachClientId = (url) => `${url}?client_id=${CLIENT_ID}`
 
 const sendRequest = (uri: string) => {
+  // https://api-v2.soundcloud.com
   let url = attachClientId(API + uri)
   return fetch(url)
     .then((res) => res.json())
@@ -38,5 +36,10 @@ const sendRequest = (uri: string) => {
       console.warn(err)
     })
 }
+
+export let shuffleArray = (array: Array<*>): Array<*> => {
+  return array.sort(() => 0.5 - Math.random())
+}
+
 // https://api.soundcloud.com/tracks/462716859/stream?client_id=95f22ed54a5c297b1c41f72d713623ef
 // 462716859
